@@ -494,7 +494,7 @@ class OpenAIClient extends OpenAIWrapper {
     required String message,
     dynamic data,
   }) {
-    if (data is Map<String, dynamic>) {
+    try {
       if (code == HttpStatus.unauthorized) {
         return OpenAIAuthError(
           code: code,
@@ -517,7 +517,7 @@ class OpenAIClient extends OpenAIWrapper {
           data: OpenAIError.fromJson(data, message),
         );
       }
-    } else {
+    } catch (e) {
       return OpenAIServerError(
         code: code,
         data: OpenAIError(
