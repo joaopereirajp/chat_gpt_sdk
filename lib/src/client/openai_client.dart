@@ -492,28 +492,42 @@ class OpenAIClient extends OpenAIWrapper {
   BaseErrorWrapper handleError({
     required int code,
     required String message,
-    Map<String, dynamic>? data,
+    dynamic data,
   }) {
-    if (code == HttpStatus.unauthorized) {
-      return OpenAIAuthError(
-        code: code,
-        data: OpenAIError.fromJson(data, message),
-      );
-    } else if (code == HttpStatus.tooManyRequests) {
-      return OpenAIRateLimitError(
-        code: code,
-        data: OpenAIError.fromJson(data, message),
-      );
-    } else if (code == HttpStatus.badRequest &&
-        '${data?['error']?['message']}'.contains(kRateLimitMessage)) {
-      return OpenAIRateLimitError(
-        code: code,
-        data: OpenAIError.fromJson(data, message),
-      );
+    if (data is Map<String, dynamic>) {
+      if (code == HttpStatus.unauthorized) {
+        return OpenAIAuthError(
+          code: code,
+          data: OpenAIError.fromJson(data, message),
+        );
+      } else if (code == HttpStatus.tooManyRequests) {
+        return OpenAIRateLimitError(
+          code: code,
+          data: OpenAIError.fromJson(data, message),
+        );
+      } else if (code == HttpStatus.badRequest &&
+          '${data['error']?['message']}'.contains(kRateLimitMessage)) {
+        return OpenAIRateLimitError(
+          code: code,
+          data: OpenAIError.fromJson(data, message),
+        );
+      } else {
+        return OpenAIServerError(
+          code: code,
+          data: OpenAIError.fromJson(data, message),
+        );
+      }
     } else {
       return OpenAIServerError(
         code: code,
-        data: OpenAIError.fromJson(data, message),
+        data: OpenAIError(
+          error: ErrorData(
+            code: code.toString(),
+            message: message,
+            type: 'unknown',
+          ),
+          message: message,
+        ),
       );
     }
   }
